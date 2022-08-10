@@ -612,7 +612,7 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         try {
-            Category::findOrFail('id', $id)->delete();
+            Category::findOrFail($id)->delete();
 
             $response = [];
             $message = 'The Category has been successfully deleted.';
