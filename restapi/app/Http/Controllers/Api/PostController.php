@@ -79,9 +79,7 @@ class PostController extends Controller
     public function show($id)
     {
         try {
-            $post = Post::find($id);
-
-            // dd($post->CategoriesBelongsTo->name);
+            $post = Post::findOrFail($id);
 
             $response = new PostResource($post);
             $message = 'Post retrieved successfully.';
