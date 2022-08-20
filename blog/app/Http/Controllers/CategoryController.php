@@ -2,19 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use DataTables;
+use Exception;
+
 use App\Models\Category;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        if ($request->ajax()) {
+            $data = Category::select('*');
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $btn = '<a href="category/'. $row->id.'" class="view btn btn-primary btn-sm"><i class="fas fa-folder"></i></a> <a href="category/'. $row->id.'/edit" class="edit btn btn-primary btn-sm"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" data-id="'.$row->id.'" class="delete btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        return view('admin.pages.category.index');
     }
 
     /**
@@ -24,7 +52,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.pages.category.create');
     }
 
     /**
@@ -35,7 +63,26 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|min:3',
+        ]);
+
+        try {
+            Category::create([
+                'name'      => $request->name,
+                'user_id'   => auth()->user()->id
+            ]);
+
+            $response = 'success';
+            $message = 'Yay! A category has been successfully created.';
+        } catch (Exception $e) {
+            $response = 'error';
+            $message = 'Oops! Unable to create a new category.';
+        }
+
+        return redirect()
+        ->route('category.index')
+        ->with($response, $message);
     }
 
     /**
@@ -46,7 +93,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        return view('admin.pages.category.show',compact('category'));
     }
 
     /**
@@ -57,7 +104,7 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        //
+        return view('admin.pages.category.edit',compact('category'));
     }
 
     /**
@@ -69,7 +116,26 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|min:3',
+        ]);
+
+        try {
+            $category = Category::find($category->id);
+            $category->name = $request->name;
+            $category->save();
+
+
+            $response = 'success';
+            $message = 'Yay! A category has been successfully created.';
+        } catch (Exception $e) {
+            $response = 'error';
+            $message = 'Oops! Unable to create a new category.';
+        }
+
+        return redirect()
+        ->route('category.index')
+        ->with($response, $message);
     }
 
     /**
@@ -80,6 +146,18 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        try {
+            Category::find($category->id)->delete();
+
+            $response = 'success';
+            $message = 'The Category has been successfully deleted.';
+        } catch (Exception $e) {
+            $response = 'error';
+            $message = 'Oops! Unable to delete Category.';
+        }
+
+        return response()->json([
+            $response => $message
+        ]);
     }
 }

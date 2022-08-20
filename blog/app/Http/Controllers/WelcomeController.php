@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Category;
+use App\Models\Post;
+use App\Models\User;
 
 class WelcomeController extends Controller
 {
@@ -13,28 +16,21 @@ class WelcomeController extends Controller
      */
     public function index()
     {
-        //
-    }
+        // Count
+        // Category::orderBy('id', 'desc')->limit(5)->get();
+        $categories = Category::all();
+        $posts = Post::orderBy('id', 'desc')->paginate(5);
+        $total_user = User::count();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+        // Recently
+        $rec_categories = Category::orderBy('id', 'desc')->limit(5)->get();
+        $rec_posts = Post::orderBy('id', 'desc')->limit(5)->get();
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+        // dd(
+        //     $categories
+        // );
+
+        return view('welcome.index', compact('categories', 'posts', 'total_user', 'rec_categories', 'rec_posts'));
     }
 
     /**
@@ -43,42 +39,27 @@ class WelcomeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function cat($id)
     {
-        //
+        $categories = Category::FindOrFail($id);
+        $category = Category::all();
+        $posts = Post::paginate(5);
+
+        return view('welcome.category', compact('categories', 'category', 'posts'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Display the specified resource.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function read($id)
     {
-        //
+        $posts = Post::FindOrFail($id);
+        $category = Category::all();
+
+        return view('welcome.posts', compact('posts', 'category'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }
